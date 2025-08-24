@@ -3,6 +3,7 @@ name = "emta"
 version = "0.0.2"
 description = "Easy Money Trading Agent"
 readme = "README.md"
+license = { file = "LICENSE" }
 authors = [
     { name = "zhou bo", email = "wokspc@gmail.com" }
 ]
