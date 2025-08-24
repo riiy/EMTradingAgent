@@ -240,9 +240,9 @@ class TradingAgent:
             # Prepare login request
             headers = BASE_HEADERS.copy()
             headers["X-Requested-With"] = "XMLHttpRequest"
-            headers[
-                "Referer"
-            ] = "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
+            headers["Referer"] = (
+                "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
+            )
             headers["Content-Type"] = "application/x-www-form-urlencoded"
 
             encrypted_password = encrypt_password(login_password.strip())
