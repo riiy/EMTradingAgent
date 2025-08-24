@@ -1,6 +1,6 @@
 [project]
 name = "emta"
-version = "0.0.2"
+version = "0.0.3"
 description = "Easy Money Trading Agent"
 readme = "README.md"
 license = { file = "LICENSE" }
