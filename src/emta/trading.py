@@ -4,7 +4,6 @@ This module provides a trading agent class for interacting with Eastmoney tradin
 """
 
 import base64
-import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -143,7 +142,7 @@ class TradingAgent:
         self.password = password
         self.is_logged_in = False
         self.account_info: AccountInfo | dict[str, Any] = {}
-        self.logger = logging.getLogger(__name__)
+        self.logger = logger
         self.session = httpx.Client()
         self.identify_code: str | None = None
         self.random_code: float | None = None
