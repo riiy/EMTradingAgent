@@ -23,7 +23,7 @@ jobs:
           enable-cache: true
       - name: Install packages
         shell: bash
-        run: uv sync
+        run: uv sync --all-extras
       - name: lint code
         shell: bash
         run: |

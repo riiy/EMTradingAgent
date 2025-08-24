@@ -21,5 +21,9 @@ jobs:
         with:
           version: "0.7.16"
           enable-cache: true
+      - name: Install packages
+        shell: bash
+        run: uv sync --all-extras
       - name: Run tests
-        run: uv run pytest "Coverage for ${{ github.sha }}"
+        shell: bash
+        run: uv run pytest -v
