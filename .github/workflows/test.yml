@@ -24,6 +24,9 @@ jobs:
       - name: Install packages
         shell: bash
         run: uv sync --all-extras
-      - name: Run tests
+      - name: Run unittests with pytest
         shell: bash
+        env:
+          EM_USERNAME: ${{ secrets.EM_USERNAME }}
+          EM_PASSWORD: ${{ secrets.EM_PASSWORD }}
         run: uv run pytest -v
