@@ -24,9 +24,12 @@ jobs:
       - name: Install packages
         shell: bash
         run: uv sync --all-extras
-      - name: lint code
+      - name: lint code mypy
         shell: bash
-        run: |
-             uv run mypy src
-             uv run ruff check src
-             uv run ruff format src --check
+        run:  uv run mypy src
+      - name: lint check code format
+        shell: bash
+        run: uv run ruff check src
+      - name: lint format code
+        shell: bash
+        run: uv run ruff format src --check
