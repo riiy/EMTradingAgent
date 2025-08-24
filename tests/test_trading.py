@@ -29,10 +29,10 @@ class TestTradingAgent:
             os.getenv("EM_PASSWORD", ""),
         )
         result = agent.login()
-        if result:
-            assert len("79e54fcd-2306-46d0-981f-e3f5d3439173") == len(
-                agent.validate_key or ""
-            )
+        assert result is True
+        assert len("79e54fcd-2306-46d0-981f-e3f5d3439173") == len(
+            agent.validate_key or ""
+        )
 
     @patch("emta.trading.TradingAgent._get_validate_key")
     @patch("emta.trading.TradingAgent._get_captcha")
