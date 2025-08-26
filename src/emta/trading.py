@@ -158,10 +158,7 @@ class TradingAgent:
         Raises:
             LoginError: If unable to retrieve validate key
         """
-        # url = "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
         url = "https://jywg.18.cn/Trade/Buy"
-        # url = "https://jywg.18.cn/LogIn/ExitLogin?returl=%2fTrade%2fBuy"
-        # url = "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
         try:
             response = self.session.get(url, headers=BASE_HEADERS)
             response.raise_for_status()
@@ -176,6 +173,13 @@ class TradingAgent:
                 raise ValidateKeyError("Unable to extract validate key from login page")
         except httpx.RequestError as e:
             raise ValidateKeyError(f"Failed to retrieve validate key: {e}")
+
+    def _check_resp(self, resp: httpx.Response):
+        if resp.status_code != 200:
+            self.logger.error(
+                f"request {resp.url} fail, code={resp.status_code}, response={resp.text}"
+            )
+            raise
 
     def _get_captcha(self) -> None:
         """Get random number and captcha code.
@@ -194,7 +198,7 @@ class TradingAgent:
             response = self.session.get(captcha_url, headers=BASE_HEADERS, timeout=60)
             response.raise_for_status()
 
-            captcha_code: str = ocr.classification(response.content)
+            captcha_code: str = ocr.classification(response.content)  # type: ignore
 
             if captcha_code:
                 self.random_code = random_num
@@ -205,6 +209,39 @@ class TradingAgent:
             raise LoginError(f"Failed to retrieve captcha: {e}")
         except Exception as e:
             raise LoginError(f"Failed to process captcha: {e}")
+
+    def _query_something(
+        self, url: str, req_data: dict | None = None
+    ) -> httpx.Response | None:
+        """通用查询函数
+
+        :param url: 请求url
+        :param req_data: 请求提交数据,可选
+        :return:
+        """
+        if not self.validate_key:
+            self.login()
+        validate_key = self.validate_key
+        logger.info(validate_key)
+        url = url + validate_key  # type: ignore
+        if req_data is None:
+            req_data = {
+                "qqhs": 100,
+                "dwc": "",
+            }
+        headers = BASE_HEADERS.copy()
+        headers["X-Requested-With"] = "XMLHttpRequest"
+        logger.debug(f"(url={url}), (data={req_data}), (url={url})")
+        resp = self.session.post(url, headers=headers, data=req_data)
+        self._check_resp(resp)
+        return resp
+
+    def _get_asset_and_post(self):
+        """Get asset and position."""
+        url = "https://jywg.18.cn/Com/queryAssetAndPositionV1?validatekey="
+        resp = self._query_something(f"{url}{self.validate_key}")
+        if resp:
+            return resp.json()
 
     def login(
         self,
@@ -232,7 +269,8 @@ class TradingAgent:
         if not login_username or not login_password:
             self.logger.error("Username and password are required for login")
             return False
-
+        self.username = login_username
+        self.password = login_password
         try:
             self.logger.info(f"Logging in user: {login_username}")
 
@@ -256,11 +294,9 @@ class TradingAgent:
                 "type": "Z",
                 "secInfo": "",
             }
+            self.logger.info(data)
 
-            # Perform login
-            login_response = self.session.post(
-                f"{LOGIN_URL}{self.validate_key}", headers=headers, data=data
-            )
+            login_response = self.session.post(LOGIN_URL, headers=headers, data=data)
             login_response.raise_for_status()
 
             # Check login result
@@ -268,14 +304,14 @@ class TradingAgent:
             if result.get("Status") == 0:
                 self.is_logged_in = True
                 self.logger.info("Login successful")
-
-                # Initialize account info (placeholder)
+                self._get_validate_key()
+                asset_pos = self._get_asset_and_post()
+                self.logger.info(asset_pos)
                 self.account_info = {
                     "username": login_username,
                     "account_balance": 100000.0,
                     "positions": [],
                 }
-                self._get_validate_key()
                 return True
             else:
                 error_msg = result.get("Message", "Unknown error")

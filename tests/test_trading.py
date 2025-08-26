@@ -33,6 +33,7 @@ class TestTradingAgent:
         assert len("79e54fcd-2306-46d0-981f-e3f5d3439173") == len(
             agent.validate_key or ""
         )
+        assert agent.is_logged_in
 
     @patch("emta.trading.TradingAgent._get_validate_key")
     @patch("emta.trading.TradingAgent._get_captcha")
