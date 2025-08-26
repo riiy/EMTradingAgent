@@ -57,12 +57,23 @@ uv run pytest
 ## Project Structure
 
 ```
-src/emta/              # Main source code
-├── __init__.py        # Package initialization
-├── trading.py         # Trading agent implementation
-└── py.typed           # Type hints marker
-tests/                 # Test files
-examples/              # Example usage scripts
+src/emta/                  # Main source code
+├── __init__.py            # Package initialization
+├── py.typed               # Type hints marker
+├── core/                  # Core trading agent implementation
+│   └── agent.py           # Main trading agent class
+├── models/                # Data models and exceptions
+│   ├── trading.py         # Trading data models
+│   └── exceptions.py      # Exception classes
+├── auth/                  # Authentication module
+│   └── client.py          # Authentication client
+├── api/                   # API client for trading operations
+│   └── client.py          # API client implementation
+└── utils/                 # Utility functions
+    ├── encryption.py      # Password encryption utilities
+    └── captcha.py         # Captcha recognition utilities
+tests/                     # Test files
+examples/                  # Example usage scripts
 ```
 
 ## Contributing
