@@ -34,6 +34,7 @@ class AuthClient:
         self.random_code: float | None = None
         self.identify_code: str | None = None
         self.validate_key: str | None = None
+        self.logger = logger
         self._get_captcha()
 
     def _get_validate_key(self) -> None:

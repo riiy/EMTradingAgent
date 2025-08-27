@@ -9,9 +9,11 @@ from ..api.client import APIClient
 from ..auth.client import AuthClient
 from ..models.trading import (
     AccountInfo,
+    AccountOverview,
     MarketData,
     OrderStatus,
     OrderType,
+    Portfolio,
     Position,
 )
 
@@ -79,11 +81,38 @@ class TradingAgent:
                     self.auth_client.validate_key or ""
                 )
                 self.logger.info(asset_pos)
+                data = asset_pos["Data"][0]
+
+                # 创建AccountOverview实例
+                account = AccountOverview(
+                    Djzj=data["Djzj"],
+                    Dryk=data["Dryk"],
+                    Kqzj=data["Kqzj"],
+                    Kyzj=data["Kyzj"],
+                    Ljyk=data["Ljyk"],
+                    Money_type=data["Money_type"],
+                    RMBZzc=data["RMBZzc"],
+                    Zjye=data["Zjye"],
+                    Zxsz=data["Zxsz"],
+                    Zzc=data["Zzc"],
+                )
+                print(account)
+
+                portfolio = Portfolio()
+
+                # 提取并添加所有持仓
+                for pos_data in asset_pos["Data"][0]["positions"]:
+                    position = Position(**pos_data)
+                    portfolio.add_position(position)
+                print(portfolio)
                 self.account_info = {
                     "username": login_username,
-                    "account_balance": 100000.0,
-                    "positions": [],
+                    "account_overview": account,
+                    "portfolio": portfolio,
                 }
+                self.account_info = AccountInfo(**self.account_info)
+            else:
+                self.logger.info(response)
             return success
         except Exception as e:
             self.logger.error(f"Login failed: {e}")

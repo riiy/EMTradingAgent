@@ -3,6 +3,8 @@
 import os
 from unittest.mock import patch
 
+from loguru import logger
+
 from emta.core.agent import TradingAgent
 from emta.models.trading import OrderStatus, OrderType
 
@@ -24,13 +26,13 @@ class TestTradingAgent:
         assert agent.password == "test_pass"
 
     def test_login(self):
+        logger.info("test_login")
         agent = TradingAgent(
             os.getenv("EM_USERNAME", ""),
             os.getenv("EM_PASSWORD", ""),
         )
-        # This test requires actual credentials, so we'll skip the actual login
-        # and just check that the method exists
-        assert hasattr(agent, "login")
+        agent.login()
+        assert agent.is_logged_in is True
 
     @patch("emta.auth.client.AuthClient.login")
     @patch("emta.auth.client.AuthClient._get_captcha")
