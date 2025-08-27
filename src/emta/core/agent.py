@@ -35,7 +35,7 @@ class TradingAgent:
         self.username = username
         self.password = password
         self.is_logged_in = False
-        self.account_info: AccountInfo | dict[str, Any] = {}
+        self.account_info: list[AccountInfo] = []
         self.logger = logger
         self.session = httpx.Client()
         self.auth_client = AuthClient(self.session)
@@ -81,36 +81,35 @@ class TradingAgent:
                     self.auth_client.validate_key or ""
                 )
                 self.logger.info(asset_pos)
-                data = asset_pos["Data"][0]
+                for data in asset_pos["Data"]:
+                    # 创建AccountOverview实例
+                    account = AccountOverview(
+                        Djzj=data["Djzj"],
+                        Dryk=data["Dryk"],
+                        Kqzj=data["Kqzj"],
+                        Kyzj=data["Kyzj"],
+                        Ljyk=data["Ljyk"],
+                        Money_type=data["Money_type"],
+                        RMBZzc=data["RMBZzc"],
+                        Zjye=data["Zjye"],
+                        Zxsz=data["Zxsz"],
+                        Zzc=data["Zzc"],
+                    )
+                    print(account)
 
-                # 创建AccountOverview实例
-                account = AccountOverview(
-                    Djzj=data["Djzj"],
-                    Dryk=data["Dryk"],
-                    Kqzj=data["Kqzj"],
-                    Kyzj=data["Kyzj"],
-                    Ljyk=data["Ljyk"],
-                    Money_type=data["Money_type"],
-                    RMBZzc=data["RMBZzc"],
-                    Zjye=data["Zjye"],
-                    Zxsz=data["Zxsz"],
-                    Zzc=data["Zzc"],
-                )
-                print(account)
+                    portfolio = Portfolio()
 
-                portfolio = Portfolio()
-
-                # 提取并添加所有持仓
-                for pos_data in asset_pos["Data"][0]["positions"]:
-                    position = Position(**pos_data)
-                    portfolio.add_position(position)
-                print(portfolio)
-                self.account_info = {
-                    "username": login_username,
-                    "account_overview": account,
-                    "portfolio": portfolio,
-                }
-                self.account_info = AccountInfo(**self.account_info)
+                    # 提取并添加所有持仓
+                    for pos_data in data["positions"]:
+                        position = Position(**pos_data)
+                        portfolio.add_position(position)
+                        print(portfolio)
+                        account_info = {
+                            "username": login_username,
+                            "account_overview": account,
+                            "portfolio": portfolio,
+                        }
+                        self.account_info.append(AccountInfo(**account_info))
             else:
                 self.logger.info(response)
             return success
@@ -122,11 +121,11 @@ class TradingAgent:
     def logout(self) -> None:
         """Logout from Eastmoney account"""
         self.is_logged_in = False
-        self.account_info = {}
+        self.account_info = []
         self.auth_client.logout()
         self.logger.info("Logged out successfully")
 
-    def get_account_info(self) -> AccountInfo | dict[str, Any]:
+    def get_account_info(self) -> list[AccountInfo]:
         """Get account information
 
         Returns:
@@ -134,9 +133,8 @@ class TradingAgent:
         """
         if not self.is_logged_in:
             self.logger.warning("User not logged in")
-            return {}
+            return []
 
-        # TODO: Implement actual account info retrieval
         return self.account_info
 
     def place_order(
@@ -231,16 +229,3 @@ class TradingAgent:
             "volume": 1000000,
             "timestamp": "2025-08-23T10:00:00",
         }
-
-    def get_positions(self) -> list[Position] | list[dict[str, Any]]:
-        """Get current positions in the account
-
-        Returns:
-            List of position dictionaries
-        """
-        if not self.is_logged_in:
-            self.logger.warning("User not logged in")
-            return []
-
-        # TODO: Implement actual positions retrieval with Eastmoney API
-        return self.account_info.get("positions", [])
