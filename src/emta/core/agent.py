@@ -77,33 +77,39 @@ class TradingAgent:
             )
             if success:
                 self.is_logged_in = True
+                # Get asset and position data
                 asset_pos = self.api_client.get_asset_and_position(
                     self.auth_client.validate_key or ""
                 )
                 self.logger.info(asset_pos)
-                for data in asset_pos["Data"]:
-                    # 创建AccountOverview实例
-                    account = AccountOverview(
-                        Djzj=data["Djzj"],
-                        Dryk=data["Dryk"],
-                        Kqzj=data["Kqzj"],
-                        Kyzj=data["Kyzj"],
-                        Ljyk=data["Ljyk"],
-                        Money_type=data["Money_type"],
-                        RMBZzc=data["RMBZzc"],
-                        Zjye=data["Zjye"],
-                        Zxsz=data["Zxsz"],
-                        Zzc=data["Zzc"],
-                    )
-                    print(account)
 
-                    portfolio = Portfolio()
+                # Handle the case where asset_pos might not have "Data" key
+                if "Data" in asset_pos:
+                    for data in asset_pos["Data"]:
+                        # Create AccountOverview instance
+                        account = AccountOverview(
+                            Djzj=data.get("Djzj", 0),
+                            Dryk=data.get("Dryk", 0),
+                            Kqzj=data.get("Kqzj", 0),
+                            Kyzj=data.get("Kyzj", 0),
+                            Ljyk=data.get("Ljyk", 0),
+                            Money_type=data.get("Money_type", ""),
+                            RMBZzc=data.get("RMBZzc", 0),
+                            Zjye=data.get("Zjye", 0),
+                            Zxsz=data.get("Zxsz", 0),
+                            Zzc=data.get("Zzc", 0),
+                        )
+                        print(account)
 
-                    # 提取并添加所有持仓
-                    for pos_data in data["positions"]:
-                        position = Position(**pos_data)
-                        portfolio.add_position(position)
-                        print(portfolio)
+                        portfolio = Portfolio()
+
+                        # Extract and add all positions
+                        positions = data.get("positions", [])
+                        for pos_data in positions:
+                            position = Position(**pos_data)
+                            portfolio.add_position(position)
+                            print(portfolio)
+
                         account_info = {
                             "username": login_username,
                             "account_overview": account,
@@ -125,7 +131,7 @@ class TradingAgent:
         self.auth_client.logout()
         self.logger.info("Logged out successfully")
 
-    def get_account_info(self) -> list[AccountInfo]:
+    def get_account_info(self) -> dict[str, Any] | list[AccountInfo]:
         """Get account information
 
         Returns:
@@ -135,7 +141,19 @@ class TradingAgent:
             self.logger.warning("User not logged in")
             return []
 
-        return self.account_info
+        # For backward compatibility, return a dict for the first account if available
+        if self.account_info:
+            first_account = self.account_info[0]
+            # Since AccountInfo is a TypedDict, first_account is already a dict
+            return {
+                "username": first_account["username"],
+                "account_balance": first_account["account_overview"].Zjye
+                if first_account["account_overview"]
+                else 0,
+                "portfolio": first_account["portfolio"],
+            }
+
+        return []
 
     def place_order(
         self, symbol: str, order_type: OrderType, quantity: float, price: float
