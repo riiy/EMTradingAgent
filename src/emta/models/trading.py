@@ -21,7 +21,7 @@ class AccountOverview:
     Zxsz: float  # 证券市值
     Zzc: float  # 总资产
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # 确保所有数值字段都是浮点数
         for v in fields(self):
             if v.name not in ["Money_type"]:
@@ -29,7 +29,7 @@ class AccountOverview:
                 if isinstance(value, str):
                     setattr(self, v.name, float(value))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """格式化打印账户信息"""
         title = "账户资金总览"
         separator = "=" * 50
@@ -97,7 +97,7 @@ class Position:
     zqzwqc: str  # 证券中文全称
     zxsznew: Decimal  # 最新市值(新)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         # 转换数值类型
         decimal_fields = [
             "Cbjg",
@@ -149,11 +149,11 @@ class Portfolio:
 
     positions: list[Position] = field(default_factory=list)
 
-    def add_position(self, position: Position):
+    def add_position(self, position: Position) -> None:
         """添加持仓"""
         self.positions.append(position)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """格式化打印持仓信息"""
         if not self.positions:
             return "暂无持仓"
@@ -286,7 +286,7 @@ class MarketData(TypedDict):
 # 使用示例
 if __name__ == "__main__":
     # 从JSON数据创建对象
-    json_data = {
+    json_data: dict[str, object] = {
         "Status": 0,
         "Count": 0,
         "Data": [
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     }
 
     # 提取Data中的第一个元素
-    data = json_data["Data"][0]
+    data = json_data["Data"][0]  # type: ignore
 
     # 创建AccountOverview实例
     account = AccountOverview(
@@ -327,7 +327,7 @@ if __name__ == "__main__":
     print(account)
 
     # 从JSON数据创建持仓对象
-    json_data = {
+    json_data_positions: dict[str, object] = {
         "Status": 0,
         "Count": 0,
         "Data": [
@@ -423,7 +423,7 @@ if __name__ == "__main__":
     portfolio = Portfolio()
 
     # 提取并添加所有持仓
-    for pos_data in json_data["Data"][0]["positions"]:
+    for pos_data in json_data_positions["Data"][0]["positions"]:  # type: ignore
         position = Position(**pos_data)
         portfolio.add_position(position)
 

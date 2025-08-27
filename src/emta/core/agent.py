@@ -110,12 +110,12 @@ class TradingAgent:
                             portfolio.add_position(position)
                             print(portfolio)
 
-                        account_info = {
+                        account_info: AccountInfo = {
                             "username": login_username,
                             "account_overview": account,
                             "portfolio": portfolio,
                         }
-                        self.account_info.append(AccountInfo(**account_info))
+                        self.account_info.append(account_info)
             else:
                 self.logger.info(response)
             return success
