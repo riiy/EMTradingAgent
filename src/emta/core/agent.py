@@ -156,31 +156,33 @@ class TradingAgent:
         return []
 
     def place_order(
-        self, symbol: str, order_type: OrderType, quantity: float, price: float
+        self, stock_code: str, trade_type: OrderType, amount: int, price: float
     ) -> str | None:
         """Place a trading order
 
         Args:
-            symbol: Stock symbol
-            order_type: Order type (BUY or SELL)
-            quantity: Number of shares
+            stock_code: Stock symbol
+            trade_type: Order type (BUY or SELL)
+            amount: Number of shares
             price: Order price
 
         Returns:
             Order ID if successful, None otherwise
         """
-        if not self.is_logged_in:
+        if not self.is_logged_in or not self.auth_client.validate_key:
             self.logger.error("User not logged in")
             return None
 
         self.logger.info(
-            f"Placing {order_type.value} order for {symbol}: "
-            f"{quantity} shares at {price}"
+            f"Placing {trade_type.value} order for {stock_code}: "
+            f"{amount} shares at {price}"
         )
-
-        # TODO: Implement actual order placement with Eastmoney API
-        # This is a placeholder implementation
-        order_id = f"order_{symbol}_{order_type.value}_{quantity}_{price}"
+        market = ""
+        resp = self.api_client.create_order(
+            self.auth_client.validate_key, stock_code, trade_type, market, price, amount
+        )
+        self.logger.info(resp)
+        order_id = f"order_{stock_code}_{trade_type.value}_{amount}_{price}"
 
         self.logger.info(f"Order placed successfully with ID: {order_id}")
         return order_id

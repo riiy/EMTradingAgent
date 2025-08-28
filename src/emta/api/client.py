@@ -5,6 +5,8 @@ from typing import Any
 import httpx
 from loguru import logger
 
+from emta.models.trading import OrderType
+
 from ..models.exceptions import TradingError
 
 # Base headers for API requests
@@ -26,6 +28,7 @@ class APIClient:
             session: HTTP client session
         """
         self.session = session
+        self.logger = logger
 
     def _check_response(self, resp: httpx.Response) -> None:
         """Check if response is successful.
@@ -37,7 +40,7 @@ class APIClient:
             TradingError: If response status is not 200
         """
         if resp.status_code != 200:
-            logger.error(
+            self.logger.error(
                 f"Request {resp.url} failed, code={resp.status_code}, response={resp.text}"
             )
             raise TradingError(f"API request failed with status {resp.status_code}")
@@ -60,7 +63,7 @@ class APIClient:
             }
         headers = BASE_HEADERS.copy()
         headers["X-Requested-With"] = "XMLHttpRequest"
-        logger.debug(f"(url={full_url}), (data={req_data})")
+        self.logger.debug(f"(url={full_url}), (data={req_data})")
         resp = self.session.post(full_url, headers=headers, data=req_data)
         self._check_response(resp)
         return resp
@@ -76,4 +79,35 @@ class APIClient:
         """
         url = "https://jywg.18.cn/Com/queryAssetAndPositionV1?validatekey="
         resp = self.query_something(url, validate_key)
+        return resp.json()  # type: ignore[no-any-return]
+
+    def create_order(
+        self,
+        validate_key: str,
+        stock_code: str,
+        trade_type: OrderType,
+        market: str,
+        price: float,
+        amount: int,
+    ) -> dict[str, Any]:
+        """交易接口, 买入或卖出.
+
+        :param str stock_code: 股票代码
+        :param str trade_type: 交易方向,B for buy, S for sell
+        :param str market: 股票市场,HA 上海, SA
+        :param float price: 股票价格
+        :param int amount: 买入/卖出数量
+        """
+        req_data = {
+            "stockCode": stock_code,
+            "tradeType": trade_type,
+            "zqmc": "",
+            "market": market,
+            "price": price,
+            "amount": amount,
+        }
+        url = "https://jywg.18.cn/Trade/SubmitTradeV2?validatekey="
+        resp = self.query_something(url, validate_key, req_data=req_data)
+        if resp:
+            self.logger.info(resp.json())
         return resp.json()  # type: ignore[no-any-return]
