@@ -5,6 +5,8 @@ from typing import Any
 import httpx
 from loguru import logger
 
+from emta.utils.stocks import get_market_code
+
 from ..api.client import APIClient
 from ..auth.client import AuthClient
 from ..models.trading import (
@@ -39,7 +41,6 @@ class TradingAgent:
         self.logger = logger
         self.session = httpx.Client()
         self.auth_client = AuthClient(self.session)
-        self.api_client = APIClient(self.session)
 
     def login(
         self,
@@ -82,9 +83,8 @@ class TradingAgent:
             if success:
                 self.is_logged_in = True
                 # Get asset and position data
-                asset_pos = self.api_client.get_asset_and_position(
-                    self.auth_client.validate_key or ""
-                )
+                self.api_client = APIClient(self.session, self.auth_client.validate_key)
+                asset_pos = self.api_client.get_asset_and_position()
                 self.logger.info(asset_pos)
 
                 # Handle the case where asset_pos might not have "Data" key
@@ -181,9 +181,9 @@ class TradingAgent:
             f"Placing {trade_type.value} order for {stock_code}: "
             f"{amount} shares at {price}"
         )
-        market = ""
+        market = get_market_code(stock_code)
         resp = self.api_client.create_order(
-            self.auth_client.validate_key, stock_code, trade_type, market, price, amount
+            stock_code, trade_type, market, price, amount
         )
         self.logger.info(resp)
         order_id = f"order_{stock_code}_{trade_type.value}_{amount}_{price}"

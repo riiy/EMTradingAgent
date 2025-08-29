@@ -7,7 +7,7 @@ from loguru import logger
 
 from emta.models.trading import OrderType
 
-from ..models.exceptions import TradingError
+from ..models.exceptions import TradingError, ValidateKeyError
 
 # Base headers for API requests
 BASE_HEADERS: dict[str, str] = {
@@ -21,7 +21,7 @@ BASE_HEADERS: dict[str, str] = {
 class APIClient:
     """Handles API requests to Eastmoney trading services"""
 
-    def __init__(self, session: httpx.Client):
+    def __init__(self, session: httpx.Client, validate_key: str | None):
         """Initialize the API client.
 
         Args:
@@ -29,6 +29,9 @@ class APIClient:
         """
         self.session = session
         self.logger = logger
+        if not validate_key:
+            raise ValidateKeyError("Validate key is not validate or You not login")
+        self.validate_key = validate_key
 
     def _check_response(self, resp: httpx.Response) -> None:
         """Check if response is successful.
@@ -46,7 +49,7 @@ class APIClient:
             raise TradingError(f"API request failed with status {resp.status_code}")
 
     def query_something(
-        self, url: str, validate_key: str, req_data: dict[str, Any] | None = None
+        self, url: str, req_data: dict[str, Any] | None = None
     ) -> httpx.Response:
         """通用查询函数
 
@@ -55,7 +58,7 @@ class APIClient:
         :param req_data: 请求提交数据,可选
         :return: HTTP响应
         """
-        full_url = f"{url}{validate_key}"
+        full_url = f"{url}{self.validate_key}"
         if req_data is None:
             req_data = {
                 "qqhs": 100,
@@ -68,7 +71,7 @@ class APIClient:
         self._check_response(resp)
         return resp
 
-    def get_asset_and_position(self, validate_key: str) -> dict[str, Any]:
+    def get_asset_and_position(self) -> dict[str, Any]:
         """Get asset and position information.
 
         Args:
@@ -78,12 +81,11 @@ class APIClient:
             Dictionary containing asset and position data
         """
         url = "https://jywg.18.cn/Com/queryAssetAndPositionV1?validatekey="
-        resp = self.query_something(url, validate_key)
+        resp = self.query_something(url)
         return resp.json()  # type: ignore[no-any-return]
 
     def create_order(
         self,
-        validate_key: str,
         stock_code: str,
         trade_type: OrderType,
         market: str,
@@ -107,7 +109,7 @@ class APIClient:
             "amount": amount,
         }
         url = "https://jywg.18.cn/Trade/SubmitTradeV2?validatekey="
-        resp = self.query_something(url, validate_key, req_data=req_data)
+        resp = self.query_something(url, req_data=req_data)
         if resp:
             self.logger.info(resp.json())
         return resp.json()  # type: ignore[no-any-return]
