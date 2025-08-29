@@ -46,6 +46,8 @@ class TradingAgent:
         username: str | None = None,
         password: str | None = None,
         duration: int = 30,
+        max_retries: int = 3,
+        retry_delay: float = 1.0,
     ) -> bool:
         """Login to Eastmoney account
 
@@ -53,6 +55,8 @@ class TradingAgent:
             username: Eastmoney account username (optional if provided in constructor)
             password: Eastmoney account password (optional if provided in constructor)
             duration: Eastmoney account login session duration in minutes (default: 30)
+            max_retries: Maximum number of retry attempts (default: 3)
+            retry_delay: Delay between retry attempts in seconds (default: 1.0)
 
         Returns:
             bool: True if login successful, False otherwise
@@ -73,7 +77,7 @@ class TradingAgent:
 
         try:
             success, response = self.auth_client.login(
-                login_username, login_password, duration
+                login_username, login_password, duration, max_retries, retry_delay
             )
             if success:
                 self.is_logged_in = True
