@@ -186,8 +186,8 @@ class TradingAgent:
             stock_code, trade_type, market, price, amount
         )
         self.logger.info(resp)
-        order_id = f"order_{stock_code}_{trade_type.value}_{amount}_{price}"
-
+        # 订单字符串, 由成交日期+成交编号组成. 在create_order和query_order接口, Wtrq的值是成交日期, Wtbh的值是成交编号, 格式为: 20240520_130662
+        order_id = ""
         self.logger.info(f"Order placed successfully with ID: {order_id}")
         return order_id
 

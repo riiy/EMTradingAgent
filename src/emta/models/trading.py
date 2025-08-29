@@ -239,8 +239,8 @@ class Portfolio:
 class OrderType(Enum):
     """Order types for trading"""
 
-    BUY = "buy"
-    SELL = "sell"
+    BUY = "B"
+    SELL = "S"
 
 
 class OrderStatus(Enum):

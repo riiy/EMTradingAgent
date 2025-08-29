@@ -102,12 +102,13 @@ class APIClient:
         """
         req_data = {
             "stockCode": stock_code,
-            "tradeType": trade_type,
+            "tradeType": trade_type.value,
             "zqmc": "",
             "market": market,
             "price": price,
             "amount": amount,
         }
+        self.logger.info(req_data)
         url = "https://jywg.18.cn/Trade/SubmitTradeV2?validatekey="
         resp = self.query_something(url, req_data=req_data)
         if resp:

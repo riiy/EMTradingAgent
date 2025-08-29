@@ -3,9 +3,9 @@ def get_market_code(code: str) -> str:
 
     # A股
     if code.startswith(("600", "601", "603", "605", "688")):
-        return "SH"
+        return "HA"
     elif code.startswith(("000", "001", "002", "003", "300", "301")):
-        return "SZ"
+        return "SA"
     elif code.startswith("8") or code.startswith("4"):  # 北交所/新三板
         return "BJ"
 
