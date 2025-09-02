@@ -66,9 +66,10 @@ class TestTradingAgent:
     def test_place_order(self, storage: dict[str, Any]) -> None:
         """Test placing an order"""
         agent = storage["agent"]
-        order_id = agent.place_order("000001", OrderType.BUY, 100, 2.5)
-        assert order_id is not None
-        assert isinstance(order_id, str)
+        orders = agent.place_order("000001", OrderType.BUY, 100, 11.5)
+        storage["orders"] = orders
+        assert orders is not None
+        assert isinstance(orders, list)
 
     def test_place_order_not_logged_in(self) -> None:
         """Test placing an order when not logged in"""
@@ -76,53 +77,14 @@ class TestTradingAgent:
         order_id = agent.place_order("SH600000", OrderType.BUY, 100, 12.5)
         assert order_id is None
 
-    @patch("emta.auth.client.AuthClient.login")
-    @patch("emta.auth.client.AuthClient._get_captcha")
-    def test_cancel_order(
-        self, mock_captcha: MagicMock, mock_auth_login: MagicMock
-    ) -> None:
+    def test_cancel_order(self, storage: dict[str, Any]) -> None:
         """Test cancelling an order"""
-        # Mock the authentication client
-        mock_auth_login.return_value = (True, {"Status": 0, "Message": "Success"})
+        agent = storage["agent"]
+        orders = storage["orders"]
 
-        # Mock the captcha
-        mock_captcha.return_value = None
-
-        # Mock asset and position data with proper structure
-        with patch(
-            "emta.api.client.APIClient.get_asset_and_position"
-        ) as mock_asset_position:
-            mock_asset_position.return_value = {
-                "Data": [
-                    {
-                        "Djzj": 100000,
-                        "Dryk": 5000,
-                        "Kqzj": 95000,
-                        "Kyzj": 80000,
-                        "Ljyk": 10000,
-                        "Money_type": "RMB",
-                        "RMBZzc": 120000,
-                        "Zjye": 100000,
-                        "Zxsz": 110000,
-                        "Zzc": 120000,
-                        "positions": [],
-                    }
-                ]
-            }
-
-            agent = TradingAgent("test_user", "test_pass")
-            # Set the validate_key before calling login to simulate successful login
-            agent.auth_client.validate_key = "test_validate_key"
-            result = agent.login()
+        for order in orders:
+            result = agent.cancel_order(order)
             assert result is True
-            assert agent.is_logged_in is True
-
-            result = agent.cancel_order("test_order_id")
-            assert result is True
-            # Verify that login was called with the correct parameters
-            mock_auth_login.assert_called_once_with(
-                "test_user", "test_pass", 30, 3, 1.0
-            )
 
     def test_cancel_order_not_logged_in(self) -> None:
         """Test cancelling an order when not logged in"""

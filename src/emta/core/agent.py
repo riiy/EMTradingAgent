@@ -1,5 +1,6 @@
 """Main trading agent implementation."""
 
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -47,8 +48,6 @@ class TradingAgent:
         username: str | None = None,
         password: str | None = None,
         duration: int = 30,
-        max_retries: int = 3,
-        retry_delay: float = 1.0,
     ) -> bool:
         """Login to Eastmoney account
 
@@ -56,8 +55,6 @@ class TradingAgent:
             username: Eastmoney account username (optional if provided in constructor)
             password: Eastmoney account password (optional if provided in constructor)
             duration: Eastmoney account login session duration in minutes (default: 30)
-            max_retries: Maximum number of retry attempts (default: 3)
-            retry_delay: Delay between retry attempts in seconds (default: 1.0)
 
         Returns:
             bool: True if login successful, False otherwise
@@ -78,13 +75,13 @@ class TradingAgent:
 
         try:
             success, response = self.auth_client.login(
-                login_username, login_password, duration, max_retries, retry_delay
+                login_username, login_password, duration
             )
             if success:
                 self.is_logged_in = True
                 # Get asset and position data
                 self.api_client = APIClient(self.session, self.auth_client.validate_key)
-                asset_pos = self.api_client.get_asset_and_position()
+                asset_pos = self.api_client.query_asset_and_position_v1()
                 self.logger.info(asset_pos)
 
                 # Handle the case where asset_pos might not have "Data" key
@@ -161,7 +158,7 @@ class TradingAgent:
 
     def place_order(
         self, stock_code: str, trade_type: OrderType, amount: int, price: float
-    ) -> str | None:
+    ) -> list[str] | None:
         """Place a trading order
 
         Args:
@@ -171,7 +168,7 @@ class TradingAgent:
             price: Order price
 
         Returns:
-            Order ID if successful, None otherwise
+            Order ID List if successful, None otherwise
         """
         if not self.is_logged_in or not self.auth_client.validate_key:
             self.logger.error("User not logged in")
@@ -182,14 +179,32 @@ class TradingAgent:
             f"{amount} shares at {price}"
         )
         market = get_market_code(stock_code)
-        resp = self.api_client.create_order(
+        resp = self.api_client.submit_trade_v2(
             stock_code, trade_type, market, price, amount
         )
         self.logger.info(resp)
-        # 订单字符串, 由成交日期+成交编号组成. 在create_order和query_order接口, Wtrq的值是成交日期, Wtbh的值是成交编号, 格式为: 20240520_130662
-        order_id = ""
-        self.logger.info(f"Order placed successfully with ID: {order_id}")
-        return order_id
+        if resp["Status"] != 0:
+            self.logger.error(resp["Message"])
+            return None
+        ret = []
+        for i in resp["Data"]:
+            # 订单字符串, 由成交日期+成交编号组成. 在create_order和query_order接口, Wtrq的值是成交日期, Wtbh的值是成交编号, 格式为: 20240520_130662
+            order_id = f"{datetime.now().strftime('%Y%m%d')}_{i['Wtbh']}"
+            ret.append(order_id)
+            self.logger.info(f"Order placed successfully with ID: {order_id}")
+        self.logger.info(ret)
+        return ret
+
+    def query_orders(self) -> list[str]:
+        """Query a trading order
+
+        Returns:
+            Order ID List if successful, None otherwise
+        """
+        if not self.is_logged_in or not self.auth_client.validate_key:
+            self.logger.error("User not logged in")
+            return []
+        return []
 
     def cancel_order(self, order_id: str) -> bool:
         """Cancel an existing order
@@ -205,10 +220,9 @@ class TradingAgent:
             return False
 
         self.logger.info(f"Cancelling order: {order_id}")
-
-        # TODO: Implement actual order cancellation with Eastmoney API
-        # This is a placeholder implementation
+        resp = self.api_client.revoke_orders(order_id)
         self.logger.info(f"Order {order_id} cancelled successfully")
+        self.logger.info(resp)
         return True
 
     def get_order_status(self, order_id: str) -> OrderStatus | None:

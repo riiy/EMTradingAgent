@@ -1,7 +1,6 @@
 """Authentication client for Eastmoney API."""
 
 import re
-import time
 from typing import Any
 
 import httpx
@@ -89,8 +88,6 @@ class AuthClient:
         username: str,
         password: str,
         duration: int = 30,
-        max_retries: int = 3,
-        retry_delay: float = 1.0,
     ) -> tuple[bool, dict[str, Any]]:
         """Login to Eastmoney account
 
@@ -98,8 +95,6 @@ class AuthClient:
             username: Eastmoney account username
             password: Eastmoney account password
             duration: Eastmoney account login session duration in minutes (default: 30)
-            max_retries: Maximum number of retry attempts (default: 3)
-            retry_delay: Delay between retry attempts in seconds (default: 1.0)
 
         Returns:
             Tuple of (success status, response data)
@@ -107,85 +102,51 @@ class AuthClient:
         Raises:
             LoginError: If login fails due to network or authentication issues
         """
-        last_exception = None
 
-        for attempt in range(max_retries + 1):
-            try:
-                logger.info(
-                    f"Logging in user: {username} (attempt {attempt + 1}/{max_retries + 1})"
-                )
+        try:
+            logger.info(f"Logging in user: {username}")
 
-                # Prepare login request
-                headers = BASE_HEADERS.copy()
-                headers["X-Requested-With"] = "XMLHttpRequest"
-                headers["Referer"] = (
-                    "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
-                )
-                headers["Content-Type"] = "application/x-www-form-urlencoded"
+            # Prepare login request
+            headers = BASE_HEADERS.copy()
+            headers["X-Requested-With"] = "XMLHttpRequest"
+            headers["Referer"] = (
+                "https://jywg.18.cn/Login?el=1&clear=&returl=%2fTrade%2fBuy"
+            )
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
 
-                encrypted_password = encrypt_password(password.strip())
+            encrypted_password = encrypt_password(password.strip())
 
-                data = {
-                    "userId": username.strip(),
-                    "password": encrypted_password,
-                    "randNumber": self.random_code,
-                    "identifyCode": self.identify_code,
-                    "duration": duration,
-                    "authCode": "",
-                    "type": "Z",
-                    "secInfo": "",
-                }
+            data = {
+                "userId": username.strip(),
+                "password": encrypted_password,
+                "randNumber": self.random_code,
+                "identifyCode": self.identify_code,
+                "duration": duration,
+                "authCode": "",
+                "type": "Z",
+                "secInfo": "",
+            }
 
-                login_response = self.session.post(
-                    LOGIN_URL, headers=headers, data=data
-                )
-                login_response.raise_for_status()
+            login_response = self.session.post(LOGIN_URL, headers=headers, data=data)
+            login_response.raise_for_status()
 
-                # Check login result
-                result = login_response.json()
-                if result.get("Status") == 0:
-                    logger.info("Login successful")
-                    self._get_validate_key()
-                    return True, result
-                else:
-                    error_msg = result.get("Message", "Unknown error")
-                    logger.error(f"Login failed: {error_msg}")
-                    return False, result
+            # Check login result
+            result = login_response.json()
+            if result.get("Status") == 0:
+                logger.info("Login successful")
+                self._get_validate_key()
+                return True, result
+            else:
+                error_msg = result.get("Message", "Unknown error")
+                logger.error(f"Login failed: {error_msg}")
+                return False, result
 
-            except LoginError:
-                # Re-raise LoginError without retrying as it's a specific error
-                raise
-            except httpx.RequestError as e:
-                last_exception = LoginError(f"Network error during login: {e}")
-                logger.warning(
-                    f"Network error during login (attempt {attempt + 1}/{max_retries + 1}): {e}"
-                )
-                if attempt < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                    # Refresh captcha for retry attempt
-                    self._get_captcha()
-                else:
-                    logger.error("Max retry attempts reached for login")
-            except Exception as e:
-                last_exception = LoginError(f"Unexpected error during login: {e}")
-                logger.warning(
-                    f"Unexpected error during login (attempt {attempt + 1}/{max_retries + 1}): {e}"
-                )
-                if attempt < max_retries:
-                    logger.info(f"Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                    # Refresh captcha for retry attempt
-                    self._get_captcha()
-                else:
-                    logger.error("Max retry attempts reached for login")
-
-        # If we've exhausted all retries, raise the last exception
-        if last_exception:
-            raise last_exception
-
-        # This shouldn't happen, but just in case
-        raise LoginError("Login failed after all retry attempts")
+        except LoginError:
+            raise
+        except httpx.RequestError as e:
+            raise LoginError(f"Network error during login: {e}")
+        except Exception as e:
+            raise LoginError(f"Unexpected error during login: {e}")
 
     def logout(self) -> None:
         """Clear authentication data"""

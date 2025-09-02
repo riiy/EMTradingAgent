@@ -54,7 +54,6 @@ class APIClient:
         """通用查询函数
 
         :param url: 请求url
-        :param validate_key: 验证key
         :param req_data: 请求提交数据,可选
         :return: HTTP响应
         """
@@ -71,7 +70,7 @@ class APIClient:
         self._check_response(resp)
         return resp
 
-    def get_asset_and_position(self) -> dict[str, Any]:
+    def query_asset_and_position_v1(self) -> dict[str, Any]:
         """Get asset and position information.
 
         Args:
@@ -82,9 +81,10 @@ class APIClient:
         """
         url = "https://jywg.18.cn/Com/queryAssetAndPositionV1?validatekey="
         resp = self.query_something(url)
+        self._check_response(resp)
         return resp.json()  # type: ignore[no-any-return]
 
-    def create_order(
+    def submit_trade_v2(
         self,
         stock_code: str,
         trade_type: OrderType,
@@ -111,6 +111,23 @@ class APIClient:
         self.logger.info(req_data)
         url = "https://jywg.18.cn/Trade/SubmitTradeV2?validatekey="
         resp = self.query_something(url, req_data=req_data)
-        if resp:
-            self.logger.info(resp.json())
+        self._check_response(resp)
+        return resp.json()  # type: ignore[no-any-return]
+
+    def revoke_orders(self, order_str: str) -> str | Any:
+        """取消交易接口.
+
+        :param str order_str: 订单字符串, 由成交日期+成交编号组成. 在create_order和query_order接口, Wtrq的值是成交日期, Wtbh的值是成交编号, 格式为: 20240520_130662
+        """
+        data = {"revokes": order_str.strip()}
+        url = "https://jywg.18.cn/Trade/RevokeOrders?validatekey="
+        resp = self.query_something(url, req_data=data)
+        self._check_response(resp)
+        return resp.text.strip()
+
+    def get_order_data(self) -> dict[str, Any]:
+        """查询交易接口."""
+        url = "https://jywg.18.cn/Search/GetOrdersData?validatekey="
+        resp = self.query_something(url)
+        self._check_response(resp)
         return resp.json()  # type: ignore[no-any-return]
