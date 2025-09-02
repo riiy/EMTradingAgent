@@ -35,7 +35,6 @@ class AuthClient:
         self.identify_code: str | None = None
         self.validate_key: str | None = None
         self.logger = logger
-        self._get_captcha()
 
     def _get_validate_key(self) -> None:
         """Get validate key from Eastmoney login page.
@@ -94,7 +93,7 @@ class AuthClient:
         Args:
             username: Eastmoney account username
             password: Eastmoney account password
-            duration: Eastmoney account login session duration in minutes (default: 30)
+            duration: Eastmoney account login session duration in minutes (default: 30 minutes)
 
         Returns:
             Tuple of (success status, response data)
@@ -107,6 +106,7 @@ class AuthClient:
             logger.info(f"Logging in user: {username}")
 
             # Prepare login request
+            self._get_captcha()
             headers = BASE_HEADERS.copy()
             headers["X-Requested-With"] = "XMLHttpRequest"
             headers["Referer"] = (
