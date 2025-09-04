@@ -125,7 +125,7 @@ class APIClient:
         self._check_response(resp)
         return resp.text.strip()
 
-    def get_order_data(self) -> dict[str, Any]:
+    def get_orders_data(self) -> dict[str, Any]:
         """查询交易接口."""
         url = "https://jywg.18.cn/Search/GetOrdersData?validatekey="
         resp = self.query_something(url)

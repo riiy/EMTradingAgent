@@ -1,9 +1,9 @@
 """Data models for trading operations."""
 
-from dataclasses import dataclass, field, fields
+from dataclasses import asdict, dataclass, field, fields
 from decimal import Decimal
 from enum import Enum
-from typing import TypedDict
+from typing import TypedDict, TypeVar
 
 
 @dataclass
@@ -283,148 +283,46 @@ class MarketData(TypedDict):
     timestamp: str
 
 
-# 使用示例
-if __name__ == "__main__":
-    # 从JSON数据创建对象
-    json_data: dict[str, object] = {
-        "Status": 0,
-        "Count": 0,
-        "Data": [
-            {
-                "Djzj": "0.00",
-                "Dryk": "0.00",
-                "Kqzj": "447.26",
-                "Kyzj": "452.23",
-                "Ljyk": "-1540.00",
-                "Money_type": "RMB",
-                "RMBZzc": "152788.23",
-                "Zjye": "447.26",
-                "Zxsz": "152340.97",
-                "Zzc": "152788.23",
-            }
-        ],
-        "Errcode": 0,
-    }
+T = TypeVar("T")
 
-    # 提取Data中的第一个元素
-    data = json_data["Data"][0]  # type: ignore
 
-    # 创建AccountOverview实例
-    account = AccountOverview(
-        Djzj=data["Djzj"],
-        Dryk=data["Dryk"],
-        Kqzj=data["Kqzj"],
-        Kyzj=data["Kyzj"],
-        Ljyk=data["Ljyk"],
-        Money_type=data["Money_type"],
-        RMBZzc=data["RMBZzc"],
-        Zjye=data["Zjye"],
-        Zxsz=data["Zxsz"],
-        Zzc=data["Zzc"],
-    )
+@dataclass
+class OrderRecord:
+    """交易记录数据类（仅包含关键字段）"""
 
-    # 打印格式化后的账户信息
-    print(account)
+    Zqdm: str  # 证券代码
+    Zqmc: str  # 证券名称
+    order_id: str  # 订单编号
+    Mmsm: str  # 操作类型
+    Wtsl: str  # 委托数量
+    Wtjg: str  # 委托价格
+    Wtzt: str  # 委托状态
+    Cjsl: str  # 成交数量
+    Cjje: str  # 成交金额
 
-    # 从JSON数据创建持仓对象
-    json_data_positions: dict[str, object] = {
-        "Status": 0,
-        "Count": 0,
-        "Data": [
-            {
-                "positions": [
-                    {
-                        "Bz": "RMB",
-                        "Cbjg": "1.000",
-                        "Cbjgex": "1.000",
-                        "Ckcb": "2000.00",
-                        "Ckcbj": "1.000",
-                        "Ckyk": "-1540.00",
-                        "Cwbl": "0.00301",
-                        "Djsl": "0",
-                        "Dqcb": "2000.00",
-                        "Dryk": "0.00",
-                        "Drykbl": "0.000000",
-                        "Gddm": "0235371788",
-                        "Gfmcdj": "0",
-                        "Gfmrjd": "0",
-                        "Gfssmmce": "0",
-                        "Gfye": "2000",
-                        "Jgbm": "5408",
-                        "Khdm": "540860219538",
-                        "Ksssl": "2000",
-                        "Kysl": "2000",
-                        "Ljyk": "-1540.00",
-                        "Market": "TA",
-                        "Mrssc": "0",
-                        "Sssl": "0",
-                        "Szjsbs": "1",
-                        "Ykbl": "-0.770000",
-                        "Zjzh": "540868886633",
-                        "Zqdm": "400251",
-                        "Zqlx": "0",
-                        "Zqlxmc": "0",
-                        "Zqmc": "海印5",
-                        "Zqsl": "2000",
-                        "Ztmc": "0",
-                        "Ztmr": "0",
-                        "Zxjg": "0.230",
-                        "Zxsz": "460.00",
-                        "zqzwqc": "海印5",
-                        "zxsznew": "460.00",
-                    },
-                    {
-                        "Bz": "RMB",
-                        "Cbjg": "8.830",
-                        "Cbjgex": "8.830",
-                        "Ckcb": "151876.00",
-                        "Ckcbj": "8.830",
-                        "Ckyk": "0.00",
-                        "Cwbl": "0.99403",
-                        "Djsl": "0",
-                        "Dqcb": "151876.00",
-                        "Dryk": "0.00",
-                        "Drykbl": "0.000000",
-                        "Gddm": "0235371788",
-                        "Gfmcdj": "0",
-                        "Gfmrjd": "0",
-                        "Gfssmmce": "0",
-                        "Gfye": "17200",
-                        "Jgbm": "5408",
-                        "Khdm": "540860219538",
-                        "Ksssl": "17200",
-                        "Kysl": "17200",
-                        "Ljyk": "0.00",
-                        "Market": "B",
-                        "Mrssc": "0",
-                        "Sssl": "0",
-                        "Szjsbs": "1",
-                        "Ykbl": "0.000000",
-                        "Zjzh": "540868886633",
-                        "Zqdm": "920100",
-                        "Zqlx": "J",
-                        "Zqlxmc": "J",
-                        "Zqmc": "三协电机",
-                        "Zqsl": "17200",
-                        "Ztmc": "0",
-                        "Ztmr": "0",
-                        "Zxjg": "8.830",
-                        "Zxsz": "151876.00",
-                        "zqzwqc": "三协电机",
-                        "zxsznew": "151876.00",
-                    },
-                ]
-            }
-        ],
-        "Errcode": 0,
-    }
+    def __str__(self) -> str:
+        """格式化输出单条记录"""
+        return (
+            f"证券代码: {self.Zqdm} | 证券名称: {self.Zqmc} | 订单编号: {self.order_id}\n"
+            f"操作类型: {self.Mmsm} | 委托数量: {self.Wtsl} | 委托价格: {self.Wtjg}\n"
+            f"委托状态: {self.Wtzt} | 成交数量: {self.Cjsl} | 成交金额: {self.Cjje}\n"
+        )
 
-    # 创建持仓组合
-    portfolio = Portfolio()
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> "OrderRecord":
+        """从字典创建实例（仅提取关键字段）"""
+        return cls(
+            Zqdm=data.get("Zqdm", ""),
+            Zqmc=data.get("Zqmc", ""),
+            Mmsm=data.get("Mmsm", ""),
+            Wtsl=data.get("Wtsl", ""),
+            Wtjg=data.get("Wtjg", ""),
+            Wtzt=data.get("Wtzt", ""),
+            Cjsl=data.get("Cjsl", ""),
+            Cjje=data.get("Cjje", ""),
+            order_id=f"{data.get('Wtrq', '')}_{data.get('Wtbh', '')}",
+        )
 
-    # 提取并添加所有持仓
-    for pos_data in json_data_positions["Data"][0]["positions"]:  # type: ignore
-        position = Position(**pos_data)
-        portfolio.add_position(position)
-
-    print(portfolio)
+    def to_dict(self) -> dict[str, str]:
+        """转换为字典"""
+        return asdict(self)

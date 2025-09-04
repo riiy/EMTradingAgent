@@ -13,8 +13,7 @@ from ..auth.client import AuthClient
 from ..models.trading import (
     AccountInfo,
     AccountOverview,
-    MarketData,
-    OrderStatus,
+    OrderRecord,
     OrderType,
     Portfolio,
     Position,
@@ -100,7 +99,6 @@ class TradingAgent:
                             Zxsz=data.get("Zxsz", 0),
                             Zzc=data.get("Zzc", 0),
                         )
-                        print(account)
 
                         portfolio = Portfolio()
 
@@ -109,7 +107,6 @@ class TradingAgent:
                         for pos_data in positions:
                             position = Position(**pos_data)
                             portfolio.add_position(position)
-                            print(portfolio)
 
                         account_info: AccountInfo = {
                             "username": login_username,
@@ -195,7 +192,7 @@ class TradingAgent:
         self.logger.info(ret)
         return ret
 
-    def query_orders(self) -> list[str]:
+    def query_orders(self) -> list[OrderRecord]:
         """Query a trading order
 
         Returns:
@@ -204,6 +201,11 @@ class TradingAgent:
         if not self.is_logged_in or not self.auth_client.validate_key:
             self.logger.error("User not logged in")
             return []
+        resp = self.api_client.get_orders_data()
+        if "Data" in resp:
+            orders = [OrderRecord.from_dict(i) for i in resp["Data"]]
+            return orders
+
         return []
 
     def cancel_order(self, order_id: str) -> bool:
@@ -224,46 +226,3 @@ class TradingAgent:
         self.logger.info(f"Order {order_id} cancelled successfully")
         self.logger.info(resp)
         return True
-
-    def get_order_status(self, order_id: str) -> OrderStatus | None:
-        """Get the status of an order
-
-        Args:
-            order_id: ID of the order to check
-
-        Returns:
-            Order status or None if order not found
-        """
-        if not self.is_logged_in:
-            self.logger.error("User not logged in")
-            return None
-
-        # TODO: Implement actual order status checking with Eastmoney API
-        # This is a placeholder implementation
-        self.logger.info(f"Checking status for order: {order_id}")
-        return OrderStatus.FILLED
-
-    def get_market_data(self, symbol: str) -> MarketData | dict[str, Any]:
-        """Get market data for a symbol
-
-        Args:
-            symbol: Stock symbol
-
-        Returns:
-            Dictionary containing market data
-        """
-        if not self.is_logged_in:
-            self.logger.warning("User not logged in")
-            return {}
-
-        # TODO: Implement actual market data retrieval with Eastmoney API
-        # This is a placeholder implementation
-        self.logger.info(f"Retrieving market data for: {symbol}")
-        return {
-            "symbol": symbol,
-            "last_price": 100.0,
-            "bid_price": 99.9,
-            "ask_price": 100.1,
-            "volume": 1000000,
-            "timestamp": "2025-08-23T10:00:00",
-        }
