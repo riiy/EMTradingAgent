@@ -123,7 +123,10 @@ class TradingAgent:
             return False
 
     def logout(self) -> None:
-        """Logout from Eastmoney account"""
+        """Logout from Eastmoney account
+
+        Clears the session and resets the agent's state.
+        """
         self.is_logged_in = False
         self.account_info = []
         self.auth_client.logout()
@@ -133,7 +136,7 @@ class TradingAgent:
         """Get account information
 
         Returns:
-            Dict containing account information
+            Dict containing account information or empty list if not logged in
         """
         if not self.is_logged_in:
             self.logger.warning("User not logged in")
@@ -165,7 +168,7 @@ class TradingAgent:
             price: Order price
 
         Returns:
-            Order ID List if successful, None otherwise
+            List of order IDs if successful, None otherwise
         """
         if not self.is_logged_in or not self.auth_client.validate_key:
             self.logger.error("User not logged in")
@@ -185,7 +188,9 @@ class TradingAgent:
             return None
         ret = []
         for i in resp["Data"]:
-            # 订单字符串, 由成交日期+成交编号组成. 在create_order和query_order接口, Wtrq的值是成交日期, Wtbh的值是成交编号, 格式为: 20240520_130662
+            # Order string consists of trade date and trade number
+            # In create_order and query_order interfaces, Wtrq is the trade date,
+            # Wtbh is the trade number, format: 20240520_130662
             order_id = f"{datetime.now().strftime('%Y%m%d')}_{i['Wtbh']}"
             ret.append(order_id)
             self.logger.info(f"Order placed successfully with ID: {order_id}")
@@ -193,10 +198,10 @@ class TradingAgent:
         return ret
 
     def query_orders(self) -> list[OrderRecord]:
-        """Query a trading order
+        """Query existing trading orders
 
         Returns:
-            Order ID List if successful, None otherwise
+            List of order records or empty list if none found or not logged in
         """
         if not self.is_logged_in or not self.auth_client.validate_key:
             self.logger.error("User not logged in")
@@ -228,19 +233,18 @@ class TradingAgent:
         return True
 
     def get_market_data(self, stock_code: str) -> float | None:
-        """get the market data
+        """Get market data for a stock
 
         Args:
             stock_code: Stock symbol
 
         Returns:
-            price: stock price
+            Current stock price or None if retrieval failed
         """
-
         resp = self.api_client.stock_bid_ask_em(stock_code)
         if "最新" in resp:
             try:
                 return float(resp["最新"])
             except Exception:
-                self.logger.error("get market price error")
+                self.logger.error("Failed to get market price")
         return None
