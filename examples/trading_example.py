@@ -4,7 +4,7 @@
 from emta import OrderType, TradingAgent
 
 
-def main():
+def main() -> None:
     # Create a trading agent
     agent = TradingAgent("your_username", "your_password")
 
@@ -14,16 +14,16 @@ def main():
 
         # Get account information
         account_info = agent.get_account_info()
-        print(f"Account balance: {account_info.get('account_balance', 0)}")
-
-        # Place a buy order
-        order_id = agent.place_order("SH600000", OrderType.BUY, 100, 12.5)
-        if order_id:
-            print(f"Order placed successfully with ID: {order_id}")
+        print(f"Account balance: {account_info}")
 
         # Get market data
-        market_data = agent.get_market_data("SH600000")
-        print(f"Market data for SH600000: {market_data}")
+        market_data = agent.get_market_data("600000")
+        print(f"Market data for 600000: {market_data}")
+
+        # Place a buy order
+        order_id = agent.place_order("600000", OrderType.BUY, 100, market_data or 10.5)
+        if order_id:
+            print(f"Order placed successfully with ID: {order_id}")
 
         # Logout
         agent.logout()
