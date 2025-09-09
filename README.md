@@ -1,172 +1,172 @@
-# Eastmoney Trading Agent (emta)
+# 东方财富交易代理 (emta)
 
 [![PyPI version](https://img.shields.io/pypi/v/emta)](https://pypi.org/project/emta/)
 [![Python Version](https://img.shields.io/pypi/pyversions/emta)](https://pypi.org/project/emta/)
 [![License](https://img.shields.io/pypi/l/emta)](https://github.com/your-username/emta/blob/main/LICENSE)
 
-Unofficial Python library for automated trading with Eastmoney (东方财富).
+东方财富非官方Python交易库
 
-## Overview
+## 概述
 
-The Eastmoney Trading Agent (`emta`) is an unofficial Python library that provides programmatic access to Eastmoney's trading platform. It enables automated trading operations such as placing orders, checking account balances, and retrieving market data.
+东方财富交易代理（`emta`）是一个非官方的Python库，提供对东方财富交易平台的编程访问。它支持自动化的交易操作，包括下单、查询账户余额和获取市场数据等功能。
 
-## Key Features
+## 主要特性
 
-* **Authentication**: Secure login with captcha recognition and password encryption
-* **Order Management**: Place, query, and cancel buy/sell orders
-* **Account Information**: Retrieve account balances and portfolio positions
-* **Market Data**: Access real-time market data for stocks
-* **Modular Design**: Clean, well-structured codebase with clear separation of concerns
-* **Type Safety**: Full type hinting for better code reliability
-* **Error Handling**: Comprehensive exception handling for robust applications
+* **身份验证**：支持验证码识别和密码加密的安全登录
+* **订单管理**：支持下单、查询和撤单操作
+* **账户信息**：获取账户余额和持仓信息
+* **市场数据**：访问股票实时市场数据
+* **模块化设计**：代码结构清晰，关注点分离明确
+* **类型安全**：完整的类型提示，提高代码可靠性
+* **错误处理**：全面的异常处理机制，确保应用稳定性
 
-## Installation
+## 安装
 
-Ensure you are using Python 3.11 or later (but less than 4.0).
+请确保使用Python 3.11或更高版本（但低于4.0）。
 
 ```bash
 pip install emta
 ```
 
-## Quick Start
+## 快速开始
 
 ```python
 from emta import TradingAgent, OrderType
 
-# Create a trading agent
+# 创建交易代理
 agent = TradingAgent("your_username", "your_password")
 
-# Login to Eastmoney
+# 登录东方财富
 if agent.login():
-    # Get account information
+    # 获取账户信息
     account_info = agent.get_account_info()
-    print(f"Account balance: {account_info.get('account_balance', 0)}")
+    print(f"账户余额: {account_info.get('account_balance', 0)}")
 
-    # Place a buy order
+    # 下买单
     order_id = agent.place_order("600000", OrderType.BUY, 100, 12.5)
     if order_id:
-        print(f"Order placed successfully with ID: {order_id}")
+        print(f"订单提交成功，订单号: {order_id}")
 
-    # Get market data
+    # 获取市场数据
     market_data = agent.get_market_data("600000")
-    print(f"Current price: {market_data}")
+    print(f"当前价格: {market_data}")
 
-    # Logout
+    # 登出
     agent.logout()
 ```
 
-For a complete example, see [examples/trading_example.py](examples/trading_example.py).
+完整示例请参见 [examples/trading_example.py](examples/trading_example.py)。
 
-## API Reference
+## API 参考
 
 ### TradingAgent
 
-The main interface for interacting with Eastmoney's trading services.
+与东方财富交易服务交互的主要接口。
 
-#### Constructor
+#### 构造函数
 ```python
 TradingAgent(username: str | None = None, password: str | None = None)
 ```
 
-#### Methods
+#### 方法
 
-| Method | Description |
-|--------|-------------|
-| `login(username=None, password=None, duration=30)` | Authenticate with Eastmoney |
-| `logout()` | End the current session |
-| `get_account_info()` | Retrieve account balance and portfolio |
-| `place_order(stock_code, trade_type, amount, price)` | Place a buy or sell order |
-| `query_orders()` | Retrieve a list of recent orders |
-| `cancel_order(order_id)` | Cancel an existing order |
-| `get_market_data(stock_code)` | Get current market data for a stock |
+| 方法 | 描述 |
+|------|------|
+| `login(username=None, password=None, duration=30)` | 东方财富身份验证 |
+| `logout()` | 结束当前会话 |
+| `get_account_info()` | 获取账户余额和持仓信息 |
+| `place_order(stock_code, trade_type, amount, price)` | 下达买入或卖出订单 |
+| `query_orders()` | 获取最近的订单列表 |
+| `cancel_order(order_id)` | 撤销现有订单 |
+| `get_market_data(stock_code)` | 获取股票的当前市场数据 |
 
-## Technology Stack
+## 技术栈
 
 * **Python**: 3.11+
-* **Dependency Management**: [UV](https://github.com/astral-sh/uv) for fast dependency resolution
-* **HTTP Client**: [HTTPX](https://www.python-httpx.org/) for async/sync HTTP requests
-* **Testing**: [Pytest](https://docs.pytest.org/) for comprehensive test coverage
-* **Type Checking**: [Mypy](http://mypy-lang.org/) for static type analysis
-* **Code Quality**: [Ruff](https://docs.astral.sh/ruff/) for linting and formatting
-* **Captcha Recognition**: [ddddocr](https://github.com/sml2h3/ddddocr) for automatic captcha solving
+* **依赖管理**: [UV](https://github.com/astral-sh/uv) 用于快速依赖解析
+* **HTTP客户端**: [HTTPX](https://www.python-httpx.org/) 用于异步/同步HTTP请求
+* **测试**: [Pytest](https://docs.pytest.org/) 用于全面的测试覆盖
+* **类型检查**: [Mypy](http://mypy-lang.org/) 用于静态类型分析
+* **代码质量**: [Ruff](https://docs.astral.sh/ruff/) 用于代码检查和格式化
+* **验证码识别**: [ddddocr](https://github.com/sml2h3/ddddocr) 用于自动验证码识别
 
-## Development Setup
+## 开发环境搭建
 
-1. Clone the repository:
+1. 克隆仓库：
    ```bash
    git clone https://github.com/your-username/emta.git
    cd emta
    ```
 
-2. Install dependencies using UV:
+2. 使用UV安装依赖：
    ```bash
    uv sync
    ```
 
-3. Run tests:
+3. 运行测试：
    ```bash
    uv run pytest
    ```
 
-4. Type checking:
+4. 类型检查：
    ```bash
    uv run mypy src/
    ```
 
-5. Linting:
+5. 代码检查：
    ```bash
    uv run ruff check src/
    ```
 
-## Project Structure
+## 项目结构
 
 ```
 src/emta/
-├── __init__.py            # Package initialization
-├── py.typed               # Type hints marker
-├── core/                  # Core trading agent implementation
-│   └── agent.py           # Main trading agent class
-├── models/                # Data models and exceptions
-│   ├── trading.py         # Trading data models
-│   └── exceptions.py      # Exception classes
-├── auth/                  # Authentication module
-│   └── client.py          # Authentication client
-├── api/                   # API client for trading operations
-│   └── client.py          # API client implementation
-└── utils/                 # Utility functions
-    ├── encryption.py      # Password encryption utilities
-    ├── captcha.py         # Captcha recognition utilities
-    └── stocks.py          # Stock market code utilities
+├── __init__.py            # 包初始化文件
+├── py.typed               # 类型提示标记
+├── core/                  # 核心交易代理实现
+│   └── agent.py           # 主要交易代理类
+├── models/                # 数据模型和异常
+│   ├── trading.py         # 交易数据模型
+│   └── exceptions.py      # 异常类
+├── auth/                  # 认证模块
+│   └── client.py          # 认证客户端
+├── api/                   # API客户端交易操作
+│   └── client.py          # API客户端实现
+└── utils/                 # 工具函数
+    ├── encryption.py      # 密码加密工具
+    ├── captcha.py         # 验证码识别工具
+    └── stocks.py          # 股票市场代码工具
 ```
 
-## Contributing
+## 贡献
 
-Contributions are welcome! If you have ideas for improvements, bug fixes, or additional features:
+欢迎贡献！如果您有改进建议、错误修复或新增功能：
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Ensure all tests pass
-6. Submit a pull request
+1. Fork 仓库
+2. 创建功能分支
+3. 进行修改
+4. 如适用，请添加测试
+5. 确保所有测试通过
+6. 提交 pull request
 
-Please follow the existing code style and add appropriate documentation for any new features.
+请遵循现有的代码风格，并为新功能添加适当的文档。
 
-## Testing
+## 测试
 
-Tests are written with pytest. To run the tests:
+测试使用 pytest 编写。运行测试：
 
 ```bash
 uv run pytest
 ```
 
-To run tests with coverage:
+运行带覆盖率的测试：
 
 ```bash
 uv run coverage run -m pytest
 uv run coverage report
 ```
 
-## License
+## 许可证
 
-This project is open-source software released under the [MIT License](./LICENSE).
+本项目是根据 [MIT 许可证](./LICENSE) 发布的开源软件。
