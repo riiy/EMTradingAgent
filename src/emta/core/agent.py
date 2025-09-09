@@ -41,6 +41,7 @@ class TradingAgent:
         self.logger = logger
         self.session = httpx.Client()
         self.auth_client = AuthClient(self.session)
+        self.api_client = APIClient(self.session)
 
     def login(
         self,
@@ -78,8 +79,7 @@ class TradingAgent:
             )
             if success:
                 self.is_logged_in = True
-                # Get asset and position data
-                self.api_client = APIClient(self.session, self.auth_client.validate_key)
+                self.api_client.validate_key = self.auth_client.validate_key
                 asset_pos = self.api_client.query_asset_and_position_v1()
                 self.logger.info(asset_pos)
 
@@ -226,3 +226,21 @@ class TradingAgent:
         self.logger.info(f"Order {order_id} cancelled successfully")
         self.logger.info(resp)
         return True
+
+    def get_market_data(self, stock_code: str) -> float | None:
+        """get the market data
+
+        Args:
+            stock_code: Stock symbol
+
+        Returns:
+            price: stock price
+        """
+
+        resp = self.api_client.stock_bid_ask_em(stock_code)
+        if "最新" in resp:
+            try:
+                return float(resp["最新"])
+            except Exception:
+                self.logger.error("get market price error")
+        return None

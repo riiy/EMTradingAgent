@@ -73,7 +73,7 @@ class TestTradingAgent:
     def test_place_order_not_logged_in(self) -> None:
         """Test placing an order when not logged in"""
         agent = TradingAgent()
-        order_id = agent.place_order("SH600000", OrderType.BUY, 100, 12.5)
+        order_id = agent.place_order("600000", OrderType.BUY, 100, 12.5)
         assert order_id is None
 
     def test_cancel_order(self, storage: dict[str, Any]) -> None:
@@ -99,3 +99,9 @@ class TestTradingAgent:
         orders = agent.query_orders()
 
         logger.info(orders)
+
+    def test_get_market_data(self) -> None:
+        """Test get market data."""
+        agent = TradingAgent()
+        price = agent.get_market_data("000001")
+        logger.info(price)

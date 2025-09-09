@@ -35,10 +35,10 @@ agent = TradingAgent("your_username", "your_password")
 # Login to Eastmoney
 if agent.login():
     # Place a buy order
-    order_id = agent.place_order("SH600000", OrderType.BUY, 100, 12.5)
+    order_id = agent.place_order("600000", OrderType.BUY, 100, 12.5)
 
     # Get market data
-    market_data = agent.get_market_data("SH600000")
+    market_data = agent.get_market_data("600000")
 
     # Logout
     agent.logout()
