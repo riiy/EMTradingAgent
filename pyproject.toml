@@ -1,6 +1,6 @@
 [project]
 name = "emta"
-version = "0.3.0"
+version = "0.4.0"
 description = "Easy Money Trading Agent"
 readme = "README.md"
 license = "MIT"
